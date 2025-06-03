@@ -2,9 +2,9 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import product_crud as pc 
 import client_crud as cc 
-import order_crud as oc # Новый импорт
+import order_crud as oc 
 import logging
-from datetime import datetime # Для отображения даты
+from datetime import datetime
 
 logging.basicConfig(filename='app_errors.log', level=logging.ERROR,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -14,29 +14,82 @@ class MainApp:
     def __init__(self, root):
         self.root = root
         self.root.title("ООО «МонтажЖилСтрой» - Система управления")
-        self.root.geometry("1150x750") # Увеличим немного
+        self.root.geometry("1200x800") 
+        self.root.configure(bg="#F0F0F0") 
         self.logger = logging.getLogger("MainAppGUI")
 
+        self.BG_COLOR = "#F0F0F0"
+        self.FRAME_BG_COLOR = "#FFFFFF" 
+        self.TEXT_COLOR = "#333333"
+        self.ACCENT_COLOR = "#0078D7"
+        self.ACCENT_TEXT_COLOR = "#FFFFFF"
+        self.WARNING_COLOR = "#D32F2F" 
+        self.BORDER_COLOR = "#BDBDBD"
+        self.TREEVIEW_HEADER_BG = "#E0E0E0"
+        self.ROW_ALT_COLOR = "#F5F5F5" 
+
+        self.DEFAULT_FONT = ("Segoe UI", 10)
+        self.LABEL_FONT = ("Segoe UI", 10)
+        self.ENTRY_FONT = ("Segoe UI", 10)
+        self.BUTTON_FONT = ("Segoe UI", 10, "bold")
+        self.TREEVIEW_FONT = ("Segoe UI", 9)
+        self.TREEVIEW_HEADING_FONT = ("Segoe UI", 10, "bold")
+        self.FRAME_LABEL_FONT = ("Segoe UI", 11, "bold")
+        
         style = ttk.Style()
         style.theme_use("clam") 
-        style.configure("Accent.TButton", foreground="white", background="#0078D7")
-        style.configure("Warning.TButton", foreground="white", background="#E81123") # Для кнопки удаления
 
-        self.notebook = ttk.Notebook(root)
+        style.configure(".", font=self.DEFAULT_FONT, background=self.BG_COLOR, foreground=self.TEXT_COLOR)
+        style.configure("TFrame", background=self.BG_COLOR)
+        style.configure("Content.TFrame", background=self.FRAME_BG_COLOR) 
+        style.configure("TLabel", font=self.LABEL_FONT, background=self.FRAME_BG_COLOR, foreground=self.TEXT_COLOR) 
+        style.configure("BG.TLabel", font=self.LABEL_FONT, background=self.BG_COLOR, foreground=self.TEXT_COLOR) 
+        style.configure("Header.TLabel", font=("Segoe UI", 14, "bold"), background=self.BG_COLOR, foreground=self.ACCENT_COLOR)
+        style.configure("Total.TLabel", font=("Segoe UI", 12, "bold"), background=self.FRAME_BG_COLOR, foreground=self.TEXT_COLOR)
+        style.configure("TLabelFrame", background=self.FRAME_BG_COLOR, bordercolor=self.BORDER_COLOR, relief="solid", borderwidth=1, padding=(15,10))
+        style.configure("TLabelFrame.Label", font=self.FRAME_LABEL_FONT, foreground=self.TEXT_COLOR, background=self.FRAME_BG_COLOR, padding=(5,2))
+        style.configure("TEntry", font=self.ENTRY_FONT, fieldbackground=self.FRAME_BG_COLOR, bordercolor=self.BORDER_COLOR, lightcolor=self.BORDER_COLOR, darkcolor=self.BORDER_COLOR, foreground=self.TEXT_COLOR)
+        style.map("TEntry", bordercolor=[("focus", self.ACCENT_COLOR)])
+        style.configure("TCombobox", font=self.ENTRY_FONT, fieldbackground=self.FRAME_BG_COLOR, background=self.FRAME_BG_COLOR, bordercolor=self.BORDER_COLOR, arrowcolor=self.TEXT_COLOR, foreground=self.TEXT_COLOR)
+        style.map("TCombobox", 
+                  fieldbackground=[("readonly", self.FRAME_BG_COLOR)],
+                  bordercolor=[("focus", self.ACCENT_COLOR)],
+                  selectbackground=[("readonly", self.ACCENT_COLOR)],
+                  selectforeground=[("readonly", self.ACCENT_TEXT_COLOR)])
+        style.configure("TButton", font=self.BUTTON_FONT, padding=(10, 5), relief="flat", borderwidth=0)
+        style.map("TButton",
+                  background=[("active", "#E0E0E0"), ("!disabled", "#F5F5F5")],
+                  foreground=[("!disabled", self.TEXT_COLOR)])
+        style.configure("Accent.TButton", font=self.BUTTON_FONT, background=self.ACCENT_COLOR, foreground=self.ACCENT_TEXT_COLOR)
+        style.map("Accent.TButton", background=[("active", "#005A9E")])
+        style.configure("Warning.TButton", font=self.BUTTON_FONT, background=self.WARNING_COLOR, foreground=self.ACCENT_TEXT_COLOR)
+        style.map("Warning.TButton", background=[("active", "#A31F1F")])
+        style.configure("Treeview.Heading", font=self.TREEVIEW_HEADING_FONT, background=self.TREEVIEW_HEADER_BG, foreground=self.TEXT_COLOR, relief="flat", padding=(5,5))
+        style.map("Treeview.Heading", background=[("active", "#CACACA")])
+        style.configure("Treeview", font=self.TREEVIEW_FONT, rowheight=28, fieldbackground=self.FRAME_BG_COLOR, background=self.FRAME_BG_COLOR, foreground=self.TEXT_COLOR)
+        style.map("Treeview", background=[("selected", self.ACCENT_COLOR)], foreground=[("selected", self.ACCENT_TEXT_COLOR)])
+        style.configure("TNotebook", background=self.BG_COLOR, borderwidth=0)
+        style.configure("TNotebook.Tab", font=self.BUTTON_FONT, padding=(10, 5), background=self.BG_COLOR, foreground=self.TEXT_COLOR, borderwidth=1)
+        style.map("TNotebook.Tab",
+                  background=[("selected", self.FRAME_BG_COLOR), ("active", "#E0E0E0")],
+                  foreground=[("selected", self.ACCENT_COLOR)],
+                  expand=[("selected", [1, 1, 1, 0])])
+
+        self.notebook = ttk.Notebook(root) 
         
-        self.products_tab = ttk.Frame(self.notebook)
+        self.products_tab = ttk.Frame(self.notebook, padding=(10,10))
         self.notebook.add(self.products_tab, text='Товары')
         self.create_products_ui(self.products_tab)
 
-        self.clients_tab = ttk.Frame(self.notebook)
+        self.clients_tab = ttk.Frame(self.notebook, padding=(10,10))
         self.notebook.add(self.clients_tab, text='Клиенты')
         self.create_clients_ui(self.clients_tab)
 
-        self.orders_tab = ttk.Frame(self.notebook) # Новая вкладка
+        self.orders_tab = ttk.Frame(self.notebook, padding=(10,10))
         self.notebook.add(self.orders_tab, text='Заказы')
         self.create_orders_ui(self.orders_tab)
         
-        self.notebook.pack(expand=True, fill='both', padx=10, pady=10)
+        self.notebook.pack(expand=True, fill='both', padx=5, pady=5)
 
     def _handle_crud_result(self, result, operation_description, entity_name=""):
         title_prefix = "Операция"
@@ -46,7 +99,7 @@ class MainApp:
 
         if isinstance(result, int) or result is True:
             success_message = ""
-            if isinstance(result, int): # add
+            if isinstance(result, int): 
                  success_message = f"{entity_name.capitalize()} успешно добавлен(а) (ID: {result})."
             elif "обновлен" in operation_description or "изменен" in operation_description :
                  success_message = f"Данные для '{entity_name}' успешно обновлены."
@@ -87,33 +140,65 @@ class MainApp:
         messagebox.showerror(error_title, user_message)
         return False
     
-    # --- UI Товары (без изменений в этой итерации, кроме вызова _handle_crud_result) ---
+    def _apply_treeview_row_tags(self, tree):
+        for i, item_id in enumerate(tree.get_children()):
+            tag = "evenrow" if i % 2 == 0 else "oddrow"
+            tree.item(item_id, tags=(tag,))
+
     def create_products_ui(self, parent_tab):
-        form_f = ttk.LabelFrame(parent_tab, text="Информация о товаре"); form_f.pack(padx=10, pady=10, fill="x")
-        btn_f = ttk.Frame(parent_tab); btn_f.pack(padx=10, pady=(0,10), fill="x")
-        tree_f = ttk.LabelFrame(parent_tab, text="Список товаров"); tree_f.pack(padx=10, pady=(0,10), fill="both", expand=True)
-        lbls = ["Название:", "Артикул:", "Категория:", "Описание:", "Цена:", "Кол-во на складе:"]; self.p_entries = {}
+        form_f = ttk.LabelFrame(parent_tab, text="Информация о товаре")
+        form_f.pack(padx=10, pady=10, fill="x")
+        btn_f = ttk.Frame(parent_tab, padding=(0, 10))
+        btn_f.pack(padx=10, pady=(0,10), fill="x")
+        tree_f = ttk.LabelFrame(parent_tab, text="Список товаров")
+        tree_f.pack(padx=10, pady=(0,10), fill="both", expand=True)
+        lbls = ["Название:", "Артикул:", "Категория:", "Описание:", "Цена:", "Кол-во на складе:"]
+        self.p_entries = {}
         for i, lt in enumerate(lbls):
-            ttk.Label(form_f, text=lt).grid(row=i, column=0, padx=5, pady=5, sticky="w")
-            self.p_entries[lt.replace(":", "")] = tk.Text(form_f, height=3, width=40, relief=tk.SOLID, borderwidth=1) if lt == "Описание:" else ttk.Entry(form_f, width=50)
-            self.p_entries[lt.replace(":", "")].grid(row=i, column=1, padx=5, pady=5, sticky="ew")
+            ttk.Label(form_f, text=lt).grid(row=i, column=0, padx=5, pady=8, sticky="w")
+            if lt == "Описание:":
+                desc_frame = ttk.Frame(form_f, style="Content.TFrame", borderwidth=1, relief="solid")
+                desc_frame.grid(row=i, column=1, padx=5, pady=8, sticky="ew")
+                self.p_entries[lt.replace(":", "")] = tk.Text(desc_frame, height=4, width=40, relief=tk.FLAT, font=self.ENTRY_FONT, wrap=tk.WORD,
+                                                                borderwidth=0, highlightthickness=0, background=self.FRAME_BG_COLOR, fg=self.TEXT_COLOR) 
+                self.p_entries[lt.replace(":", "")].pack(expand=True, fill="both", padx=1, pady=1)
+            else:
+                self.p_entries[lt.replace(":", "")] = ttk.Entry(form_f, width=50)
+                self.p_entries[lt.replace(":", "")].grid(row=i, column=1, padx=5, pady=8, sticky="ew")
         form_f.columnconfigure(1, weight=1)
-        ttk.Button(btn_f, text="Добавить товар", command=self.add_p_gui, style="Accent.TButton").pack(side="left", padx=5)
-        ttk.Button(btn_f, text="Обновить товар", command=self.upd_p_gui).pack(side="left", padx=5)
-        ttk.Button(btn_f, text="Удалить товар", command=self.del_p_gui, style="Warning.TButton").pack(side="left", padx=5)
-        ttk.Button(btn_f, text="Очистить поля", command=self.clr_p_flds_gui).pack(side="left", padx=5)
-        ttk.Button(btn_f, text="Обновить список", command=self.load_p_gui).pack(side="left", padx=5)
+        btn_configs = [
+            ("Добавить товар", self.add_p_gui, "Accent.TButton"),
+            ("Обновить товар", self.upd_p_gui, "TButton"),
+            ("Удалить товар", self.del_p_gui, "Warning.TButton"),
+            ("Очистить поля", self.clr_p_flds_gui, "TButton"),
+            ("Обновить список", self.load_p_gui, "TButton")
+        ]
+        for text, cmd, style_name in btn_configs:
+            ttk.Button(btn_f, text=text, command=cmd, style=style_name).pack(side="left", padx=(0,10))
         self.p_tree = ttk.Treeview(tree_f, columns=("ID", "Name", "Article", "Category", "Price", "Stock"), show="headings")
-        p_hds = [("ID", 50, "center"), ("Name", 250, "w"), ("Article", 120, "center"), ("Category", 150, "w"), ("Price", 100, "e"), ("Stock", 100, "center")]
-        for c, w, a in p_hds: self.p_tree.heading(c, text=c); self.p_tree.column(c, width=w, anchor=a, minwidth=w)
-        p_scr = ttk.Scrollbar(tree_f, orient="vertical", command=self.p_tree.yview); self.p_tree.configure(yscrollcommand=p_scr.set); p_scr.pack(side="right", fill="y"); self.p_tree.pack(fill="both", expand=True)
-        self.p_tree.bind("<<TreeviewSelect>>", self.on_p_sel_gui); self.sel_p_id = None; self.load_p_gui()
+        p_hds = [("ID", 60, "center"), ("Name", 300, "w"), ("Article", 150, "center"), ("Category", 180, "w"), ("Price", 120, "e"), ("Stock", 120, "center")]
+        for c, w, a in p_hds: 
+            self.p_tree.heading(c, text=c)
+            self.p_tree.column(c, width=w, anchor=a, minwidth=w, stretch=tk.YES if c=="Name" else tk.NO)
+        p_scr_y = ttk.Scrollbar(tree_f, orient="vertical", command=self.p_tree.yview)
+        p_scr_x = ttk.Scrollbar(tree_f, orient="horizontal", command=self.p_tree.xview)
+        self.p_tree.configure(yscrollcommand=p_scr_y.set, xscrollcommand=p_scr_x.set)
+        p_scr_y.pack(side="right", fill="y")
+        p_scr_x.pack(side="bottom", fill="x")
+        self.p_tree.pack(fill="both", expand=True, padx=(0,5), pady=(0,5)) 
+        self.p_tree.bind("<<TreeviewSelect>>", self.on_p_sel_gui)
+        self.sel_p_id = None
+        self.p_tree.tag_configure("oddrow", background=self.FRAME_BG_COLOR)
+        self.p_tree.tag_configure("evenrow", background=self.ROW_ALT_COLOR)
+        self.load_p_gui()
 
     def load_p_gui(self):
         for i in self.p_tree.get_children(): self.p_tree.delete(i)
         products = pc.get_all_products()
         if isinstance(products, list):
-            for p in products: self.p_tree.insert("", "end", values=(p["id"], p["name"], p["article_number"], p.get("category",""), f"{p['price']:.2f}", p["stock_quantity"]))
+            for idx, p in enumerate(products): 
+                tag = "evenrow" if idx % 2 == 0 else "oddrow"
+                self.p_tree.insert("", "end", values=(p["id"], p["name"], p["article_number"], p.get("category",""), f"{p['price']:.2f}", p["stock_quantity"]), tags=(tag,))
         self.clr_p_flds_gui()
 
     def get_p_form_data(self):
@@ -127,7 +212,7 @@ class MainApp:
             if not d["name"] or not d["article_number"]: messagebox.showerror("Ошибка валидации (Товар)", "Поля 'Название' и 'Артикул' обязательны."); return None
             d["price"]=float(pr_s) if pr_s else 0.0; d["stock_quantity"]=int(st_s) if st_s else 0
             if d["price"]<0 : messagebox.showerror("Ошибка валидации (Товар)", "Цена не может быть отрицательной."); return None
-            if d["stock_quantity"]<0 : messagebox.showerror("Ошибка валидации (Товар)", "Кол-во на складе не может быть отрицательным."); return None # Проверка уже есть в БД, но лучше и тут
+            if d["stock_quantity"]<0 : messagebox.showerror("Ошибка валидации (Товар)", "Кол-во на складе не может быть отрицательным."); return None
             return d
         except ValueError: messagebox.showerror("Ошибка валидации (Товар)", "'Цена' и 'Кол-во на складе' должны быть числами."); return None
 
@@ -166,39 +251,65 @@ class MainApp:
             if self._handle_crud_result(res, f"удаления товара", p_name): self.load_p_gui()
     
     def clr_p_flds_gui(self):
-        for k in self.p_entries:
-            if isinstance(self.p_entries[k],tk.Text): self.p_entries[k].delete("1.0",tk.END)
-            else: self.p_entries[k].delete(0,tk.END)
+        for k_entry, widget in self.p_entries.items():
+            if isinstance(widget, tk.Text): widget.delete("1.0", tk.END)
+            elif isinstance(widget, ttk.Entry): widget.delete(0, tk.END)
         self.sel_p_id = None
         if self.p_tree.selection(): self.p_tree.selection_remove(self.p_tree.selection()[0])
 
-    # --- UI Клиенты (без изменений в этой итерации, кроме вызова _handle_crud_result) ---
     def create_clients_ui(self, parent_tab):
-        form_f = ttk.LabelFrame(parent_tab, text="Информация о клиенте"); form_f.pack(padx=10, pady=10, fill="x")
-        btn_f = ttk.Frame(parent_tab); btn_f.pack(padx=10, pady=(0,10), fill="x")
-        tree_f = ttk.LabelFrame(parent_tab, text="Список клиентов"); tree_f.pack(padx=10, pady=(0,10), fill="both", expand=True)
-        cl_lbls = ["ФИО:", "Телефон:", "Email:", "Адрес:"]; self.cl_entries = {}
+        form_f = ttk.LabelFrame(parent_tab, text="Информация о клиенте")
+        form_f.pack(padx=10, pady=10, fill="x")
+        btn_f = ttk.Frame(parent_tab, padding=(0, 10))
+        btn_f.pack(padx=10, pady=(0,10), fill="x")
+        tree_f = ttk.LabelFrame(parent_tab, text="Список клиентов")
+        tree_f.pack(padx=10, pady=(0,10), fill="both", expand=True)
+        cl_lbls = ["ФИО:", "Телефон:", "Email:", "Адрес:"]
+        self.cl_entries = {}
         for i, lt in enumerate(cl_lbls):
-            ttk.Label(form_f, text=lt).grid(row=i, column=0, padx=5, pady=5, sticky="w")
-            self.cl_entries[lt.replace(":", "")] = tk.Text(form_f, height=2, width=40, relief=tk.SOLID, borderwidth=1) if lt == "Адрес:" else ttk.Entry(form_f, width=50)
-            self.cl_entries[lt.replace(":", "")].grid(row=i, column=1, padx=5, pady=5, sticky="ew")
+            ttk.Label(form_f, text=lt).grid(row=i, column=0, padx=5, pady=8, sticky="w")
+            if lt == "Адрес:":
+                addr_frame = ttk.Frame(form_f, style="Content.TFrame", borderwidth=1, relief="solid")
+                addr_frame.grid(row=i, column=1, padx=5, pady=8, sticky="ew")
+                self.cl_entries[lt.replace(":", "")] = tk.Text(addr_frame, height=3, width=40, relief=tk.FLAT, font=self.ENTRY_FONT, wrap=tk.WORD,
+                                                                borderwidth=0, highlightthickness=0, background=self.FRAME_BG_COLOR, fg=self.TEXT_COLOR)
+                self.cl_entries[lt.replace(":", "")].pack(expand=True, fill="both", padx=1, pady=1)
+            else:
+                self.cl_entries[lt.replace(":", "")] = ttk.Entry(form_f, width=50)
+                self.cl_entries[lt.replace(":", "")].grid(row=i, column=1, padx=5, pady=8, sticky="ew")
         form_f.columnconfigure(1, weight=1)
-        ttk.Button(btn_f, text="Добавить клиента", command=self.add_cl_gui, style="Accent.TButton").pack(side="left", padx=5)
-        ttk.Button(btn_f, text="Обновить клиента", command=self.upd_cl_gui).pack(side="left", padx=5)
-        ttk.Button(btn_f, text="Удалить клиента", command=self.del_cl_gui, style="Warning.TButton").pack(side="left", padx=5)
-        ttk.Button(btn_f, text="Очистить поля", command=self.clr_cl_flds_gui).pack(side="left", padx=5)
-        ttk.Button(btn_f, text="Обновить список", command=self.load_cl_gui).pack(side="left", padx=5)
+        cl_btn_configs = [
+            ("Добавить клиента", self.add_cl_gui, "Accent.TButton"),
+            ("Обновить клиента", self.upd_cl_gui, "TButton"),
+            ("Удалить клиента", self.del_cl_gui, "Warning.TButton"),
+            ("Очистить поля", self.clr_cl_flds_gui, "TButton"),
+            ("Обновить список", self.load_cl_gui, "TButton")
+        ]
+        for text, cmd, style_name in cl_btn_configs:
+            ttk.Button(btn_f, text=text, command=cmd, style=style_name).pack(side="left", padx=(0,10))
         self.cl_tree = ttk.Treeview(tree_f, columns=("ID", "FullName", "Phone", "Email", "Address"), show="headings")
-        cl_hds = [("ID",50,"center"), ("FullName",250,"w"), ("Phone",120,"w"), ("Email",200,"w"), ("Address",250,"w")]
-        for c,w,a in cl_hds: self.cl_tree.heading(c, text=c.replace("FullName","ФИО")); self.cl_tree.column(c,width=w,anchor=a,minwidth=w)
-        cl_scr = ttk.Scrollbar(tree_f, orient="vertical", command=self.cl_tree.yview); self.cl_tree.configure(yscrollcommand=cl_scr.set); cl_scr.pack(side="right",fill="y"); self.cl_tree.pack(fill="both",expand=True)
-        self.cl_tree.bind("<<TreeviewSelect>>", self.on_cl_sel_gui); self.sel_cl_id = None; self.load_cl_gui()
+        cl_hds = [("ID",60,"center"), ("FullName",250,"w"), ("Phone",150,"w"), ("Email",200,"w"), ("Address",300,"w")]
+        for c,w,a in cl_hds: 
+            self.cl_tree.heading(c, text=c.replace("FullName","ФИО").replace("Phone","Телефон"))
+            self.cl_tree.column(c,width=w,anchor=a,minwidth=w, stretch=tk.YES if c in ["FullName", "Address"] else tk.NO)
+        cl_scr_y = ttk.Scrollbar(tree_f, orient="vertical", command=self.cl_tree.yview)
+        cl_scr_x = ttk.Scrollbar(tree_f, orient="horizontal", command=self.cl_tree.xview)
+        self.cl_tree.configure(yscrollcommand=cl_scr_y.set, xscrollcommand=cl_scr_x.set)
+        cl_scr_y.pack(side="right",fill="y"); cl_scr_x.pack(side="bottom", fill="x")
+        self.cl_tree.pack(fill="both",expand=True, padx=(0,5), pady=(0,5))
+        self.cl_tree.bind("<<TreeviewSelect>>", self.on_cl_sel_gui)
+        self.sel_cl_id = None
+        self.cl_tree.tag_configure("oddrow", background=self.FRAME_BG_COLOR)
+        self.cl_tree.tag_configure("evenrow", background=self.ROW_ALT_COLOR)
+        self.load_cl_gui()
 
     def load_cl_gui(self):
         for i in self.cl_tree.get_children(): self.cl_tree.delete(i)
         clients = cc.get_all_clients()
         if isinstance(clients, list):
-            for c in clients: self.cl_tree.insert("","end",values=(c["id"],c["full_name"],c.get("phone_number",""),c["email"],c.get("address","")))
+            for idx, c in enumerate(clients): 
+                tag = "evenrow" if idx % 2 == 0 else "oddrow"
+                self.cl_tree.insert("","end",values=(c["id"],c["full_name"],c.get("phone_number",""),c["email"],c.get("address","")), tags=(tag,))
         self.clr_cl_flds_gui()
 
     def get_cl_form_data(self):
@@ -247,120 +358,134 @@ class MainApp:
             if self._handle_crud_result(res, f"удаления клиента", cl_name): self.load_cl_gui()
 
     def clr_cl_flds_gui(self):
-        for k in self.cl_entries:
-            if isinstance(self.cl_entries[k],tk.Text): self.cl_entries[k].delete("1.0",tk.END)
-            else: self.cl_entries[k].delete(0,tk.END)
+        for k_entry, widget in self.cl_entries.items():
+            if isinstance(widget, tk.Text): widget.delete("1.0", tk.END)
+            elif isinstance(widget, ttk.Entry): widget.delete(0, tk.END)
         self.sel_cl_id = None
         if self.cl_tree.selection(): self.cl_tree.selection_remove(self.cl_tree.selection()[0])
 
-    # --- UI и логика для вкладки "Заказы" ---
     def create_orders_ui(self, parent_tab):
-        # --- Верхняя часть: Создание нового заказа ---
         new_order_frame = ttk.LabelFrame(parent_tab, text="Создание нового заказа")
         new_order_frame.pack(padx=10, pady=10, fill="x")
+        new_order_frame.columnconfigure(1, weight=1) 
 
-        # Выбор клиента
-        ttk.Label(new_order_frame, text="Клиент:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
-        self.order_client_combobox = ttk.Combobox(new_order_frame, state="readonly", width=47)
-        self.order_client_combobox.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        self.populate_client_combobox() # Заполняем при инициализации
+        ttk.Label(new_order_frame, text="Клиент:").grid(row=0, column=0, padx=5, pady=8, sticky="w")
+        self.order_client_combobox = ttk.Combobox(new_order_frame, state="readonly", width=45)
+        self.order_client_combobox.grid(row=0, column=1, columnspan=3, padx=5, pady=8, sticky="ew")
+        self.populate_client_combobox()
 
-        # Добавление товаров в заказ
-        add_item_frame = ttk.Frame(new_order_frame)
-        add_item_frame.grid(row=1, column=0, columnspan=4, pady=5, sticky="ew")
-        
-        ttk.Label(add_item_frame, text="Товар:").pack(side="left", padx=(0,5))
-        self.order_product_combobox = ttk.Combobox(add_item_frame, state="readonly", width=40)
-        self.order_product_combobox.pack(side="left", padx=5)
-        self.populate_product_combobox() # Заполняем
+        add_item_subframe = ttk.Frame(new_order_frame, style="Content.TFrame") 
+        add_item_subframe.grid(row=1, column=0, columnspan=4, pady=10, sticky="ew")
+        add_item_subframe.columnconfigure(1, weight=1) 
+
+        ttk.Label(add_item_subframe, text="Товар:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.order_product_combobox = ttk.Combobox(add_item_subframe, state="readonly", width=35)
+        self.order_product_combobox.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         self.order_product_combobox.bind("<<ComboboxSelected>>", self.on_order_product_selected)
 
-
-        ttk.Label(add_item_frame, text="Кол-во:").pack(side="left", padx=(10,5))
+        ttk.Label(add_item_subframe, text="Кол-во:").grid(row=0, column=2, padx=(10,0), pady=5, sticky="w")
         self.order_quantity_var = tk.StringVar(value="1")
-        self.order_quantity_entry = ttk.Entry(add_item_frame, textvariable=self.order_quantity_var, width=5)
-        self.order_quantity_entry.pack(side="left", padx=5)
+        self.order_quantity_entry = ttk.Entry(add_item_subframe, textvariable=self.order_quantity_var, width=6)
+        self.order_quantity_entry.grid(row=0, column=3, padx=5, pady=5, sticky="w")
         
-        self.order_product_price_label = ttk.Label(add_item_frame, text="Цена: 0.00 руб.") # Для отображения цены выбранного товара
-        self.order_product_price_label.pack(side="left", padx=(10,5))
+        # Метка цены товара создается ЗДЕСЬ, ДО вызова populate_product_combobox
+        self.order_product_price_label = ttk.Label(add_item_subframe, text="Цена: 0.00 (Ост: 0)")
+        self.order_product_price_label.grid(row=0, column=4, padx=(10,0), pady=5, sticky="w")
 
-        ttk.Button(add_item_frame, text="Добавить в заказ", command=self.add_item_to_current_order_gui).pack(side="left", padx=5)
+        # Теперь вызываем populate_product_combobox, когда метка уже существует
+        self.populate_product_combobox()
 
-        # Текущие позиции заказа (перед оформлением)
+        ttk.Button(add_item_subframe, text="Добавить в заказ", command=self.add_item_to_current_order_gui, style="TButton").grid(row=0, column=5, padx=(10,5), pady=5, sticky="e")
+        add_item_subframe.columnconfigure(5, weight=0) 
+
         current_items_frame = ttk.LabelFrame(new_order_frame, text="Позиции текущего заказа")
-        current_items_frame.grid(row=2, column=0, columnspan=4, padx=5, pady=5, sticky="nsew")
-        new_order_frame.grid_rowconfigure(2, weight=1) # Чтобы эта рамка растягивалась
+        current_items_frame.grid(row=2, column=0, columnspan=4, padx=5, pady=10, sticky="nsew")
+        new_order_frame.grid_rowconfigure(2, weight=1)
 
-        self.current_order_items_tree = ttk.Treeview(current_items_frame, columns=("ID", "Product", "Qty", "Price", "Subtotal"), show="headings", height=5)
-        coi_hds = [("ID",0,"w"),("Product",300,"w"),("Qty",80,"center"),("Price",100,"e"),("Subtotal",120,"e")] # ID товара скрыт
+        self.current_order_items_tree = ttk.Treeview(current_items_frame, columns=("ID", "Product", "Qty", "Price", "Subtotal"), show="headings", height=4)
+        coi_hds = [("ID",0,"w"),("Product",300,"w"),("Qty",80,"center"),("Price",100,"e"),("Subtotal",120,"e")]
         for c,w,a in coi_hds: 
             self.current_order_items_tree.heading(c, text=c.replace("Product","Товар").replace("Qty","Кол-во").replace("Price","Цена").replace("Subtotal","Сумма"))
-            self.current_order_items_tree.column(c, width=w, anchor=a, stretch= (c=="Product") ) # Растягиваем только название товара
-        if "ID" in dict(coi_hds): self.current_order_items_tree.column("ID", stretch=tk.NO, width=0) # Скрываем колонку ID товара
+            self.current_order_items_tree.column(c, width=w, anchor=a, stretch= (c=="Product") )
+        column_names_coi = [c[0] for c in coi_hds]
+        if "ID" in column_names_coi: self.current_order_items_tree.column("ID", stretch=tk.NO, width=0)
 
-        coi_scr = ttk.Scrollbar(current_items_frame, orient="vertical", command=self.current_order_items_tree.yview)
-        self.current_order_items_tree.configure(yscrollcommand=coi_scr.set)
-        coi_scr.pack(side="right", fill="y"); self.current_order_items_tree.pack(fill="both", expand=True)
-        self.current_order_items_tree.bind("<Double-1>", self.remove_item_from_current_order_gui) # Удаление по двойному клику
-
-        self.current_order_total_label = ttk.Label(new_order_frame, text="Итого по заказу: 0.00 руб.", font=("Arial", 12, "bold"))
-        self.current_order_total_label.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky="w")
-
-        order_action_frame = ttk.Frame(new_order_frame)
-        order_action_frame.grid(row=3, column=2, columnspan=2, padx=5, pady=5, sticky="e")
-        ttk.Button(order_action_frame, text="Очистить текущий заказ", command=self.clear_current_order_gui).pack(side="left", padx=5)
-        ttk.Button(order_action_frame, text="Оформить заказ", command=self.create_order_gui, style="Accent.TButton").pack(side="left", padx=5)
+        coi_scr_y = ttk.Scrollbar(current_items_frame, orient="vertical", command=self.current_order_items_tree.yview)
+        self.current_order_items_tree.configure(yscrollcommand=coi_scr_y.set)
+        coi_scr_y.pack(side="right", fill="y"); self.current_order_items_tree.pack(fill="both", expand=True, pady=(0,5))
+        self.current_order_items_tree.bind("<Double-1>", self.remove_item_from_current_order_gui)
+        self.current_order_items_data = []
         
-        self.current_order_items_data = [] # Хранит {'product_id': ..., 'product_name': ..., 'quantity': ..., 'price_per_unit': ...}
+        self.current_order_items_tree.tag_configure("oddrow", background=self.FRAME_BG_COLOR)
+        self.current_order_items_tree.tag_configure("evenrow", background=self.ROW_ALT_COLOR)
 
-        # --- Нижняя часть: Список существующих заказов ---
+        total_and_buttons_frame = ttk.Frame(new_order_frame, style="Content.TFrame")
+        total_and_buttons_frame.grid(row=3, column=0, columnspan=4, padx=5, pady=(5,0), sticky="ew")
+        total_and_buttons_frame.columnconfigure(1, weight=1) 
+
+        self.current_order_total_label = ttk.Label(total_and_buttons_frame, text="Итого по заказу: 0.00 руб.", style="Total.TLabel")
+        self.current_order_total_label.grid(row=0, column=0, padx=0, pady=5, sticky="w")
+        
+        ttk.Button(total_and_buttons_frame, text="Очистить", command=self.clear_current_order_gui, style="TButton").grid(row=0, column=2, padx=(0,10), pady=5, sticky="e")
+        ttk.Button(total_and_buttons_frame, text="Оформить заказ", command=self.create_order_gui, style="Accent.TButton").grid(row=0, column=3, padx=0, pady=5, sticky="e")
+
         orders_list_frame = ttk.LabelFrame(parent_tab, text="Список оформленных заказов")
         orders_list_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        orders_list_actions_frame = ttk.Frame(orders_list_frame)
-        orders_list_actions_frame.pack(fill="x", pady=(0,5))
-        ttk.Button(orders_list_actions_frame, text="Обновить список заказов", command=self.load_orders_gui).pack(side="left", padx=5)
-        # Кнопки для изменения статуса и удаления будут здесь, но активируются при выборе заказа
+        orders_list_actions_frame = ttk.Frame(orders_list_frame, style="Content.TFrame", padding=(0,5))
+        orders_list_actions_frame.pack(fill="x", pady=(0,10))
+        
+        ttk.Button(orders_list_actions_frame, text="Обновить список", command=self.load_orders_gui, style="TButton").pack(side="left", padx=(0,10))
         self.order_status_label = ttk.Label(orders_list_actions_frame, text="Новый статус:")
         self.order_status_label.pack(side="left", padx=(10,0))
-        self.order_status_combobox = ttk.Combobox(orders_list_actions_frame, values=oc.ORDER_STATUSES, state="readonly", width=20)
+        self.order_status_combobox = ttk.Combobox(orders_list_actions_frame, values=oc.ORDER_STATUSES, state="readonly", width=18)
         self.order_status_combobox.pack(side="left", padx=5)
-        self.update_order_status_button = ttk.Button(orders_list_actions_frame, text="Изменить статус", command=self.update_order_status_gui, state="disabled")
-        self.update_order_status_button.pack(side="left", padx=5)
+        self.update_order_status_button = ttk.Button(orders_list_actions_frame, text="Изменить статус", command=self.update_order_status_gui, style="TButton", state="disabled")
+        self.update_order_status_button.pack(side="left", padx=(0,10))
         self.delete_order_button = ttk.Button(orders_list_actions_frame, text="Удалить заказ", command=self.delete_order_gui, style="Warning.TButton", state="disabled")
-        self.delete_order_button.pack(side="left", padx=5)
-        self.view_order_details_button = ttk.Button(orders_list_actions_frame, text="Детали заказа", command=self.view_order_details_gui, state="disabled")
-        self.view_order_details_button.pack(side="right", padx=5)
+        self.delete_order_button.pack(side="left", padx=(0,10))
+        self.view_order_details_button = ttk.Button(orders_list_actions_frame, text="Детали заказа", command=self.view_order_details_gui, style="TButton", state="disabled")
+        self.view_order_details_button.pack(side="right", padx=0)
 
-
-        self.orders_tree = ttk.Treeview(orders_list_frame, columns=("ID", "Client", "Date", "Status", "Total"), show="headings", height=10)
-        o_hds = [("ID",70,"center"),("Client",250,"w"),("Date",170,"w"),("Status",150,"w"),("Total",120,"e")]
-        for c,w,a in o_hds: self.orders_tree.heading(c, text=c.replace("Client","Клиент").replace("Date","Дата").replace("Status","Статус").replace("Total","Сумма")); self.orders_tree.column(c,width=w,anchor=a,minwidth=w)
+        self.orders_tree = ttk.Treeview(orders_list_frame, columns=("ID", "Client", "Date", "Status", "Total"), show="headings")
+        o_hds = [("ID",70,"center"),("Client",280,"w"),("Date",170,"w"),("Status",150,"w"),("Total",120,"e")]
+        for c,w,a in o_hds: 
+            self.orders_tree.heading(c, text=c.replace("Client","Клиент").replace("Date","Дата").replace("Status","Статус").replace("Total","Сумма"))
+            self.orders_tree.column(c,width=w,anchor=a,minwidth=w, stretch=tk.YES if c=="Client" else tk.NO)
         
-        o_scr = ttk.Scrollbar(orders_list_frame, orient="vertical", command=self.orders_tree.yview); self.orders_tree.configure(yscrollcommand=o_scr.set); o_scr.pack(side="right",fill="y"); self.orders_tree.pack(fill="both",expand=True)
-        self.orders_tree.bind("<<TreeviewSelect>>", self.on_order_select_gui); self.sel_order_id = None; self.load_orders_gui()
-
+        o_scr_y = ttk.Scrollbar(orders_list_frame, orient="vertical", command=self.orders_tree.yview)
+        o_scr_x = ttk.Scrollbar(orders_list_frame, orient="horizontal", command=self.orders_tree.xview)
+        self.orders_tree.configure(yscrollcommand=o_scr_y.set, xscrollcommand=o_scr_x.set)
+        o_scr_y.pack(side="right",fill="y"); o_scr_x.pack(side="bottom", fill="x")
+        self.orders_tree.pack(fill="both",expand=True, padx=(0,5), pady=(0,5))
+        
+        self.orders_tree.bind("<<TreeviewSelect>>", self.on_order_select_gui)
+        self.sel_order_id = None
+        
+        self.orders_tree.tag_configure("oddrow", background=self.FRAME_BG_COLOR)
+        self.orders_tree.tag_configure("evenrow", background=self.ROW_ALT_COLOR)
+        self.load_orders_gui()
+        
     def populate_client_combobox(self):
         clients = cc.get_all_clients()
         client_display_list = [f"{c['full_name']} (ID: {c['id']})" for c in clients]
         self.order_client_combobox['values'] = client_display_list
-        self.clients_data_for_combobox = clients # Сохраняем полные данные для получения ID
+        self.clients_data_for_combobox = clients
 
     def populate_product_combobox(self):
-        products = pc.get_all_products() # Получаем id, name, price, stock
-        # Отображаем только товары с остатком > 0
-        product_display_list = [f"{p['name']} (Арт: {p['article_number']}, Остаток: {p['stock_quantity']})" for p in products if p['stock_quantity'] > 0]
+        products = pc.get_all_products()
+        product_display_list = [f"{p['name']} (Арт: {p['article_number']}, Ост: {p['stock_quantity']})" for p in products if p['stock_quantity'] > 0]
         self.order_product_combobox['values'] = product_display_list
         self.products_data_for_combobox = [p for p in products if p['stock_quantity'] > 0]
+        self.on_order_product_selected() 
 
     def on_order_product_selected(self, event=None):
         selected_index = self.order_product_combobox.current()
-        if selected_index >= 0:
+        if selected_index >= 0 and self.products_data_for_combobox and selected_index < len(self.products_data_for_combobox):
             product = self.products_data_for_combobox[selected_index]
-            self.order_product_price_label.config(text=f"Цена: {product['price']:.2f} руб. (Ост: {product['stock_quantity']})")
+            self.order_product_price_label.config(text=f"Цена: {product['price']:.2f} (Ост: {product['stock_quantity']})")
         else:
-            self.order_product_price_label.config(text="Цена: 0.00 руб.")
-
+            self.order_product_price_label.config(text="Цена: 0.00 (Ост: 0)")
 
     def add_item_to_current_order_gui(self):
         client_idx = self.order_client_combobox.current()
@@ -374,55 +499,69 @@ class MainApp:
             if quantity <= 0: messagebox.showwarning("Внимание", "Количество должно быть больше нуля."); return
         except ValueError: messagebox.showwarning("Внимание", "Количество должно быть числом."); return
 
+        if not self.products_data_for_combobox or product_idx >= len(self.products_data_for_combobox):
+             messagebox.showerror("Ошибка", "Выбранный товар не найден в списке доступных.")
+             return
         selected_product = self.products_data_for_combobox[product_idx]
         
         if quantity > selected_product['stock_quantity']:
             messagebox.showwarning("Недостаточно товара", f"На складе только {selected_product['stock_quantity']} шт. товара '{selected_product['name']}'.")
             return
 
-        # Проверяем, нет ли уже такого товара в текущем заказе
+        existing_item_tree_id = None
+        existing_item_data_index = -1
+
         for i, item_data in enumerate(self.current_order_items_data):
             if item_data['product_id'] == selected_product['id']:
-                new_quantity = item_data['quantity'] + quantity
-                if new_quantity > selected_product['stock_quantity']: # Проверка общего количества
-                     messagebox.showwarning("Недостаточно товара", f"С учетом уже добавленного, на складе только {selected_product['stock_quantity']} шт. товара '{selected_product['name']}'.")
-                     return
-                item_data['quantity'] = new_quantity
-                # Обновляем Treeview
-                tree_item_id = self.current_order_items_tree.get_children()[i]
+                existing_item_data_index = i
+                for child_id in self.current_order_items_tree.get_children():
+                    tree_item_values = self.current_order_items_tree.item(child_id, "values")
+                    if tree_item_values and str(tree_item_values[0]) == str(selected_product['id']):
+                        existing_item_tree_id = child_id
+                        break
+                break
+        
+        if existing_item_data_index != -1: 
+            item_data = self.current_order_items_data[existing_item_data_index]
+            new_quantity = item_data['quantity'] + quantity
+            if new_quantity > selected_product['stock_quantity']:
+                 messagebox.showwarning("Недостаточно товара", f"С учетом уже добавленного, на складе только {selected_product['stock_quantity']} шт. товара '{selected_product['name']}'.")
+                 return
+            item_data['quantity'] = new_quantity
+            if existing_item_tree_id:
                 subtotal = new_quantity * item_data['price_per_unit']
-                self.current_order_items_tree.item(tree_item_id, values=(selected_product['id'], selected_product['name'], new_quantity, f"{item_data['price_per_unit']:.2f}", f"{subtotal:.2f}"))
-                self.update_current_order_total()
-                return # Выходим, так как товар обновлен
+                self.current_order_items_tree.item(existing_item_tree_id, values=(selected_product['id'], selected_product['name'], new_quantity, f"{item_data['price_per_unit']:.2f}", f"{subtotal:.2f}"))
+        else: 
+            item_data = {
+                'product_id': selected_product['id'],
+                'product_name': selected_product['name'],
+                'quantity': quantity,
+                'price_per_unit': selected_product['price']
+            }
+            self.current_order_items_data.append(item_data)
+            subtotal = quantity * selected_product['price']
+            tag_idx = len(self.current_order_items_tree.get_children())
+            tag = "evenrow" if tag_idx % 2 == 0 else "oddrow"
+            self.current_order_items_tree.insert("", "end", values=(selected_product['id'], selected_product['name'], quantity, f"{selected_product['price']:.2f}", f"{subtotal:.2f}"), tags=(tag,))
 
-        # Если товара нет, добавляем новую позицию
-        item_data = {
-            'product_id': selected_product['id'],
-            'product_name': selected_product['name'],
-            'quantity': quantity,
-            'price_per_unit': selected_product['price']
-        }
-        self.current_order_items_data.append(item_data)
-        subtotal = quantity * selected_product['price']
-        self.current_order_items_tree.insert("", "end", values=(selected_product['id'], selected_product['name'], quantity, f"{selected_product['price']:.2f}", f"{subtotal:.2f}"))
         self.update_current_order_total()
-        self.order_product_combobox.set('') # Очищаем выбор товара
-        self.order_product_price_label.config(text="Цена: 0.00 руб.")
+        self.order_product_combobox.set('')
+        self.order_product_price_label.config(text="Цена: 0.00 (Ост: 0)")
         self.order_quantity_var.set("1")
-
 
     def remove_item_from_current_order_gui(self, event=None):
         selected_tree_item = self.current_order_items_tree.focus()
         if not selected_tree_item: return
-
-        # Находим индекс элемента в self.current_order_items_data по ID товара (который скрыт в Treeview)
-        # или по индексу в Treeview, если он соответствует
+        
         item_values = self.current_order_items_tree.item(selected_tree_item, "values")
-        product_id_to_remove = item_values[0] # ID товара
+        if not item_values: 
+            messagebox.showerror("Ошибка", "Не удалось получить данные выбранного товара.")
+            return
+        product_id_to_remove = item_values[0] 
 
         item_index_to_remove = -1
         for i, item_data in enumerate(self.current_order_items_data):
-            if str(item_data['product_id']) == str(product_id_to_remove): # Сравниваем как строки на всякий случай
+            if str(item_data['product_id']) == str(product_id_to_remove):
                 item_index_to_remove = i
                 break
         
@@ -430,10 +569,9 @@ class MainApp:
             del self.current_order_items_data[item_index_to_remove]
             self.current_order_items_tree.delete(selected_tree_item)
             self.update_current_order_total()
+            self._apply_treeview_row_tags(self.current_order_items_tree)
         else:
-            # Этого не должно произойти, если данные синхронизированы
-            messagebox.showerror("Ошибка", "Не удалось найти товар для удаления из текущего заказа.")
-
+            messagebox.showerror("Ошибка", "Не удалось найти товар для удаления.")
 
     def update_current_order_total(self):
         total = sum(item['quantity'] * item['price_per_unit'] for item in self.current_order_items_data)
@@ -442,7 +580,7 @@ class MainApp:
     def clear_current_order_gui(self):
         self.order_client_combobox.set('')
         self.order_product_combobox.set('')
-        self.order_product_price_label.config(text="Цена: 0.00 руб.")
+        self.order_product_price_label.config(text="Цена: 0.00 (Ост: 0)")
         self.order_quantity_var.set("1")
         for i in self.current_order_items_tree.get_children():
             self.current_order_items_tree.delete(i)
@@ -454,35 +592,41 @@ class MainApp:
         if client_idx < 0: messagebox.showwarning("Внимание", "Пожалуйста, выберите клиента."); return
         if not self.current_order_items_data: messagebox.showwarning("Внимание", "Добавьте хотя бы один товар в заказ."); return
 
+        if not self.clients_data_for_combobox or client_idx >= len(self.clients_data_for_combobox):
+            messagebox.showerror("Ошибка", "Выбранный клиент не найден.")
+            return
         selected_client_data = self.clients_data_for_combobox[client_idx]
         client_id = selected_client_data['id']
         
-        # order_items_data уже содержит product_id, quantity, price_per_unit
         result = oc.add_order(client_id, self.current_order_items_data)
         
         if self._handle_crud_result(result, "создания заказа", f"для клиента {selected_client_data['full_name']}"):
             self.load_orders_gui()
             self.clear_current_order_gui()
-            self.populate_product_combobox() # Обновляем остатки в комбобоксе товаров
-            self.load_p_gui() # Обновляем список товаров на вкладке "Товары"
+            self.populate_product_combobox() 
+            self.load_p_gui()
 
     def load_orders_gui(self):
         for i in self.orders_tree.get_children(): self.orders_tree.delete(i)
         orders = oc.get_all_orders_with_details()
         if isinstance(orders, list):
-            for o in orders:
+            for idx, o in enumerate(orders):
                 order_date_formatted = datetime.strptime(o["order_date"], '%Y-%m-%d %H:%M:%S').strftime('%d.%m.%Y %H:%M')
-                self.orders_tree.insert("", "end", values=(o["id"], o["client_name"], order_date_formatted, o["status"], f"{o['total_amount']:.2f}"))
+                tag = "evenrow" if idx % 2 == 0 else "oddrow"
+                self.orders_tree.insert("", "end", values=(o["id"], o["client_name"], order_date_formatted, o["status"], f"{o['total_amount']:.2f}"), tags=(tag,))
         self.sel_order_id = None
         self.update_order_action_buttons_state()
-
 
     def on_order_select_gui(self, event=None):
         selected_item = self.orders_tree.focus()
         if selected_item:
-            self.sel_order_id = self.orders_tree.item(selected_item, "values")[0]
-            current_status = self.orders_tree.item(selected_item, "values")[3]
-            self.order_status_combobox.set(current_status) # Устанавливаем текущий статус в комбобокс
+            item_values = self.orders_tree.item(selected_item, "values")
+            if item_values:
+                self.sel_order_id = item_values[0]
+                current_status = item_values[3]
+                self.order_status_combobox.set(current_status)
+            else: 
+                self.sel_order_id = None
         else:
             self.sel_order_id = None
         self.update_order_action_buttons_state()
@@ -493,16 +637,16 @@ class MainApp:
         self.delete_order_button.config(state=state)
         self.view_order_details_button.config(state=state)
         if not self.sel_order_id:
-             self.order_status_combobox.set('') # Сбрасываем комбобокс статусов
+             self.order_status_combobox.set('')
 
     def update_order_status_gui(self):
         if not self.sel_order_id: messagebox.showwarning("Внимание", "Выберите заказ для изменения статуса."); return
-        
         new_status = self.order_status_combobox.get()
         if not new_status: messagebox.showwarning("Внимание", "Выберите новый статус заказа."); return
 
-        # Получаем текущий статус из таблицы, чтобы не полагаться на комбобокс, если он не обновлен
-        selected_item_values = self.orders_tree.item(self.orders_tree.focus(), "values")
+        selected_item_focus = self.orders_tree.focus()
+        if not selected_item_focus: return 
+        selected_item_values = self.orders_tree.item(selected_item_focus, "values")
         current_status_in_tree = selected_item_values[3] if selected_item_values else None
 
         if new_status == current_status_in_tree:
@@ -512,13 +656,12 @@ class MainApp:
         result = oc.update_order_status(self.sel_order_id, new_status)
         if self._handle_crud_result(result, f"изменения статуса заказа ID {self.sel_order_id}", f"заказ ID {self.sel_order_id}"):
             self.load_orders_gui()
-            self.populate_product_combobox() # Обновляем остатки, если статус "Отменен"
-            self.load_p_gui() # Обновляем список товаров на вкладке "Товары"
+            self.populate_product_combobox()
+            self.load_p_gui()
 
     def delete_order_gui(self):
         if not self.sel_order_id: messagebox.showwarning("Внимание", "Выберите заказ для удаления."); return
-        
-        order_details_for_name = oc.get_order_details_by_id(self.sel_order_id) # Для имени клиента в сообщении
+        order_details_for_name = oc.get_order_details_by_id(self.sel_order_id)
         order_name_for_msg = f"ID {self.sel_order_id}"
         if order_details_for_name:
             order_name_for_msg = f"ID {self.sel_order_id} (клиент: {order_details_for_name['client_full_name']})"
@@ -527,47 +670,59 @@ class MainApp:
             result = oc.delete_order(self.sel_order_id)
             if self._handle_crud_result(result, "удаления заказа", order_name_for_msg):
                 self.load_orders_gui()
-                self.populate_product_combobox() # Обновляем остатки
-                self.load_p_gui() # Обновляем список товаров
+                self.populate_product_combobox()
+                self.load_p_gui()
 
     def view_order_details_gui(self):
-        if not self.sel_order_id:
-            messagebox.showwarning("Внимание", "Выберите заказ для просмотра деталей.")
-            return
-
+        if not self.sel_order_id: messagebox.showwarning("Внимание", "Выберите заказ для просмотра деталей."); return
         details = oc.get_order_details_by_id(self.sel_order_id)
-        if not details:
-            self._handle_crud_result("NotFound", "просмотра деталей заказа", f"ID {self.sel_order_id}")
-            return
+        if not details: self._handle_crud_result("NotFound", "просмотра деталей заказа", f"ID {self.sel_order_id}"); return
 
         details_window = tk.Toplevel(self.root)
         details_window.title(f"Детали заказа ID {self.sel_order_id}")
-        details_window.geometry("700x500")
-        details_window.transient(self.root) # Делаем окно модальным относительно главного
-        details_window.grab_set()
+        details_window.geometry("750x550")
+        details_window.configure(bg=self.BG_COLOR) 
+        details_window.transient(self.root); details_window.grab_set()
+
+        ttk.Label(details_window, text=f"Детали заказа ID {self.sel_order_id}", style="Header.TLabel").pack(pady=(10,5))
 
         info_frame = ttk.LabelFrame(details_window, text="Общая информация")
-        info_frame.pack(padx=10, pady=10, fill="x")
-
-        ttk.Label(info_frame, text=f"ID Заказа: {details['id']}").pack(anchor="w")
-        ttk.Label(info_frame, text=f"Клиент: {details['client_full_name']} (ID: {details['client_id']})").pack(anchor="w")
-        if details.get('client_email'): ttk.Label(info_frame, text=f"Email клиента: {details['client_email']}").pack(anchor="w")
-        if details.get('client_phone_number'): ttk.Label(info_frame, text=f"Телефон клиента: {details['client_phone_number']}").pack(anchor="w")
-        order_date_f = datetime.strptime(details["order_date"], '%Y-%m-%d %H:%M:%S').strftime('%d.%m.%Y %H:%M')
-        ttk.Label(info_frame, text=f"Дата заказа: {order_date_f}").pack(anchor="w")
-        ttk.Label(info_frame, text=f"Статус: {details['status']}").pack(anchor="w")
-        ttk.Label(info_frame, text=f"Общая сумма: {details['total_amount']:.2f} руб.").pack(anchor="w")
+        info_frame.pack(padx=10, pady=5, fill="x")
+        
+        info_labels_data = [
+            ("ID Заказа:", details['id']),
+            ("Клиент:", f"{details['client_full_name']} (ID: {details['client_id']})"),
+            ("Email клиента:", details.get('client_email', '-')),
+            ("Телефон клиента:", details.get('client_phone_number', '-')),
+            ("Дата заказа:", datetime.strptime(details["order_date"], '%Y-%m-%d %H:%M:%S').strftime('%d.%m.%Y %H:%M')),
+            ("Статус:", details['status']),
+            ("Общая сумма:", f"{details['total_amount']:.2f} руб.")
+        ]
+        for i, (label_text, value_text) in enumerate(info_labels_data):
+            ttk.Label(info_frame, text=label_text, font=self.LABEL_FONT + ("bold",)).grid(row=i, column=0, sticky="w", pady=3, padx=5)
+            ttk.Label(info_frame, text=value_text).grid(row=i, column=1, sticky="w", pady=3, padx=5)
+        info_frame.columnconfigure(1, weight=1)
 
         items_frame = ttk.LabelFrame(details_window, text="Позиции заказа")
         items_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
         items_tree = ttk.Treeview(items_frame, columns=("Article", "Product", "Qty", "Price", "Subtotal"), show="headings")
-        it_hds = [("Article",100,"w"),("Product",250,"w"),("Qty",70,"center"),("Price",100,"e"),("Subtotal",100,"e")]
-        for c,w,a in it_hds: items_tree.heading(c, text=c.replace("Article","Артикул").replace("Product","Товар").replace("Qty","Кол-во").replace("Price","Цена").replace("Subtotal","Сумма")); items_tree.column(c,width=w,anchor=a,minwidth=w)
+        it_hds = [("Article",120,"w"),("Product",280,"w"),("Qty",80,"center"),("Price",100,"e"),("Subtotal",100,"e")]
+        for c,w,a in it_hds: 
+            items_tree.heading(c, text=c.replace("Article","Артикул").replace("Product","Товар").replace("Qty","Кол-во").replace("Price","Цена").replace("Subtotal","Сумма"))
+            items_tree.column(c,width=w,anchor=a,minwidth=w, stretch=tk.YES if c=="Product" else tk.NO)
         
-        for item in details['items']:
-            items_tree.insert("", "end", values=(item['product_article'], item['product_name'], item['quantity'], f"{item['price_per_unit']:.2f}", f"{(item['quantity'] * item['price_per_unit']):.2f}"))
+        items_tree.tag_configure("oddrow_detail", background=self.FRAME_BG_COLOR) 
+        items_tree.tag_configure("evenrow_detail", background=self.ROW_ALT_COLOR)
+
+        for idx, item in enumerate(details['items']):
+            tag = "evenrow_detail" if idx % 2 == 0 else "oddrow_detail"
+            items_tree.insert("", "end", values=(item['product_article'], item['product_name'], item['quantity'], f"{item['price_per_unit']:.2f}", f"{(item['quantity'] * item['price_per_unit']):.2f}"), tags=(tag,))
         
-        it_scr = ttk.Scrollbar(items_frame, orient="vertical", command=items_tree.yview); items_tree.configure(yscrollcommand=it_scr.set); it_scr.pack(side="right",fill="y"); items_tree.pack(fill="both",expand=True)
+        it_scr_y = ttk.Scrollbar(items_frame, orient="vertical", command=items_tree.yview)
+        it_scr_x = ttk.Scrollbar(items_frame, orient="horizontal", command=items_tree.xview)
+        items_tree.configure(yscrollcommand=it_scr_y.set, xscrollcommand=it_scr_x.set)
+        it_scr_y.pack(side="right",fill="y"); it_scr_x.pack(side="bottom", fill="x")
+        items_tree.pack(fill="both",expand=True, padx=(0,5), pady=(0,5))
         
-        ttk.Button(details_window, text="Закрыть", command=details_window.destroy).pack(pady=10)
+        ttk.Button(details_window, text="Закрыть", command=details_window.destroy, style="Accent.TButton").pack(pady=15)
